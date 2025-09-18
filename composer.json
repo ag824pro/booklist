@@ -1,0 +1,10 @@
+{
+    "require": {
+        "php": "^7.4"
+    },
+    "scripts": {
+        "post-install-cmd": [
+            "echo 'PHP dependencies installed successfully'"
+        ]
+    }
+}
