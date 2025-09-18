@@ -2,23 +2,26 @@
 require_once 'config.php';
 
 try {
-    $stmt = $pdo->query("SELECT * FROM tasks ORDER BY created_at DESC");
-    $tasks = $stmt->fetchAll();
+    $stmt = $pdo->query("SELECT * FROM books ORDER BY created_at DESC");
+    $books = $stmt->fetchAll();
 } catch(PDOException $e) {
-    die("Ошибка при получении задач: " . $e->getMessage());
+    die("Ошибка при получении книг: " . $e->getMessage());
 }
 
 $message = '';
 $messageType = '';
 
 if (isset($_GET['deleted']) && $_GET['deleted'] == '1') {
-    $message = 'Задача успешно удалена!';
+    $message = 'Книга успешно удалена!';
     $messageType = 'success';
-} elseif (isset($_GET['status']) && $_GET['status'] == 'completed') {
-    $message = 'Задача отмечена как выполненная!';
+} elseif (isset($_GET['status']) && $_GET['status'] == 'прочитана') {
+    $message = 'Книга отмечена как прочитанная!';
     $messageType = 'success';
-} elseif (isset($_GET['status']) && $_GET['status'] == 'uncompleted') {
-    $message = 'Задача отмечена как не выполненная!';
+} elseif (isset($_GET['status']) && $_GET['status'] == 'в процессе') {
+    $message = 'Книга отмечена как читаемая!';
+    $messageType = 'success';
+} elseif (isset($_GET['status']) && $_GET['status'] == 'в планах') {
+    $message = 'Книга добавлена в планы!';
     $messageType = 'success';
 } elseif (isset($_GET['error']) && $_GET['error'] == '1') {
     $message = 'Произошла ошибка при выполнении операции!';
@@ -31,23 +34,23 @@ if (isset($_GET['deleted']) && $_GET['deleted'] == '1') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Система управления задачами</title>
+    <title>Система управления книгами</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        .task-card {
+        .book-card {
             transition: transform 0.2s;
         }
-        .task-card:hover {
+        .book-card:hover {
             transform: translateY(-2px);
         }
         .status-badge {
             font-size: 0.8em;
         }
-        .completed {
+        .read {
             opacity: 0.7;
         }
-        .completed .card-title {
+        .read .card-title {
             text-decoration: line-through;
         }
     </style>
@@ -58,10 +61,10 @@ if (isset($_GET['deleted']) && $_GET['deleted'] == '1') {
             <div class="col-12">
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <h1 class="display-4 text-primary">
-                        <i class="fas fa-tasks"></i> Система управления задачами
+                        <i class="fas fa-book"></i> Система управления книгами
                     </h1>
                     <a href="add.php" class="btn btn-success btn-lg">
-                        <i class="fas fa-plus"></i> Добавить задачу
+                        <i class="fas fa-plus"></i> Добавить книгу
                     </a>
                 </div>
 
@@ -73,57 +76,67 @@ if (isset($_GET['deleted']) && $_GET['deleted'] == '1') {
                     </div>
                 <?php endif; ?>
 
-                <?php if (empty($tasks)): ?>
+                <?php if (empty($books)): ?>
                     <div class="alert alert-info text-center">
                         <i class="fas fa-info-circle fa-2x mb-3"></i>
-                        <h4>Нет задач</h4>
-                        <p>Начните с добавления первой задачи!</p>
-                        <a href="add.php" class="btn btn-primary">Добавить задачу</a>
+                        <h4>Нет книг</h4>
+                        <p>Начните с добавления первой книги!</p>
+                        <a href="add.php" class="btn btn-primary">Добавить книгу</a>
                     </div>
                 <?php else: ?>
                     <div class="row">
-                        <?php foreach ($tasks as $task): ?>
+                        <?php foreach ($books as $book): ?>
                             <div class="col-md-6 col-lg-4 mb-4">
-                                <div class="card task-card h-100 <?php echo $task['status'] === 'выполнена' ? 'completed' : ''; ?>">
+                                <div class="card book-card h-100 <?php echo $book['status'] === 'прочитана' ? 'read' : ''; ?>">
                                     <div class="card-header d-flex justify-content-between align-items-center">
-                                        <span class="badge <?php echo $task['status'] === 'выполнена' ? 'bg-success' : 'bg-warning'; ?> status-badge">
-                                            <?php echo htmlspecialchars($task['status']); ?>
+                                        <span class="badge <?php 
+                                            echo $book['status'] === 'прочитана' ? 'bg-success' : 
+                                                ($book['status'] === 'в процессе' ? 'bg-warning' : 'bg-info'); 
+                                        ?> status-badge">
+                                            <?php echo htmlspecialchars($book['status']); ?>
                                         </span>
                                         <small class="text-muted">
                                             <i class="fas fa-calendar"></i>
-                                            <?php echo date('d.m.Y H:i', strtotime($task['created_at'])); ?>
+                                            <?php echo date('d.m.Y H:i', strtotime($book['created_at'])); ?>
                                         </small>
                                     </div>
                                     <div class="card-body">
-                                        <h5 class="card-title"><?php echo htmlspecialchars($task['title']); ?></h5>
-                                        <?php if (!empty($task['description'])): ?>
-                                            <p class="card-text"><?php echo htmlspecialchars($task['description']); ?></p>
-                                        <?php endif; ?>
+                                        <h5 class="card-title"><?php echo htmlspecialchars($book['title']); ?></h5>
+                                        <p class="card-text">
+                                            <strong>Автор:</strong> <?php echo htmlspecialchars($book['author']); ?><br>
+                                            <strong>Год:</strong> <?php echo htmlspecialchars($book['year']); ?>
+                                        </p>
                                     </div>
                                     <div class="card-footer">
                                         <div class="btn-group w-100" role="group">
-                                            <?php if ($task['status'] === 'не выполнена'): ?>
-                                                <a href="update_status.php?id=<?php echo $task['id']; ?>&status=выполнена" 
+                                            <?php if ($book['status'] === 'в планах'): ?>
+                                                <a href="update_status.php?id=<?php echo $book['id']; ?>&status=в процессе" 
+                                                   class="btn btn-warning btn-sm" 
+                                                   onclick="return confirm('Начать читать эту книгу?')">
+                                                    <i class="fas fa-play"></i>
+                                                </a>
+                                            <?php elseif ($book['status'] === 'в процессе'): ?>
+                                                <a href="update_status.php?id=<?php echo $book['id']; ?>&status=прочитана" 
                                                    class="btn btn-success btn-sm" 
-                                                   onclick="return confirm('Отметить задачу как выполненную?')">
+                                                   onclick="return confirm('Отметить книгу как прочитанную?')">
                                                     <i class="fas fa-check"></i>
                                                 </a>
                                             <?php else: ?>
-                                                <a href="update_status.php?id=<?php echo $task['id']; ?>&status=не выполнена" 
+                                                <a href="update_status.php?id=<?php echo $book['id']; ?>&status=в процессе" 
                                                    class="btn btn-warning btn-sm" 
-                                                   onclick="return confirm('Отметить задачу как не выполненную?')">
+                                                   onclick="return confirm('Вернуть книгу в процесс чтения?')">
                                                     <i class="fas fa-undo"></i>
                                                 </a>
                                             <?php endif; ?>
                                             
-                                            <a href="edit.php?id=<?php echo $task['id']; ?>" 
+                                            <a href="edit.php?id=<?php echo $book['id']; ?>" 
                                                class="btn btn-primary btn-sm">
                                                 <i class="fas fa-edit"></i>
                                             </a>
                                             
-                                            <a href="delete.php?id=<?php echo $task['id']; ?>" 
+                                            <a href="delete.php?id=<?php echo $book['id']; ?>" 
                                                class="btn btn-danger btn-sm" 
-                                               onclick="return confirm('Вы уверены, что хотите удалить эту задачу?')">
+                                               onclick="return confirm('Вы уверены, что хотите удалить эту книгу?')">
                                                 <i class="fas fa-trash"></i>
                                             </a>
                                         </div>

@@ -1,29 +1,27 @@
 <?php
 require_once 'config.php';
 
-$taskId = $_GET['id'] ?? null;
+$bookId = $_GET['id'] ?? null;
 $status = $_GET['status'] ?? null;
 
-if (!$taskId || !is_numeric($taskId) || !in_array($status, ['не выполнена', 'выполнена'])) {
+if (!$bookId || !is_numeric($bookId) || !in_array($status, ['прочитана', 'в процессе', 'в планах'])) {
     header('Location: index.php');
     exit;
 }
 
 try {
-    $stmt = $pdo->prepare("SELECT id FROM tasks WHERE id = ?");
-    $stmt->execute([$taskId]);
+    $stmt = $pdo->prepare("SELECT id FROM books WHERE id = ?");
+    $stmt->execute([$bookId]);
     
     if (!$stmt->fetch()) {
         header('Location: index.php');
         exit;
     }
     
-
-    $stmt = $pdo->prepare("UPDATE tasks SET status = ? WHERE id = ?");
-    $stmt->execute([$status, $taskId]);
+    $stmt = $pdo->prepare("UPDATE books SET status = ? WHERE id = ?");
+    $stmt->execute([$status, $bookId]);
     
-    $message = $status === 'выполнена' ? 'completed' : 'uncompleted';
-    header("Location: index.php?status=$message");
+    header("Location: index.php?status=$status");
     exit;
     
 } catch(PDOException $e) {

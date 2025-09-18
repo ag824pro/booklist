@@ -1,24 +1,24 @@
 <?php
 require_once 'config.php';
 
-$taskId = $_GET['id'] ?? null;
+$bookId = $_GET['id'] ?? null;
 
-if (!$taskId || !is_numeric($taskId)) {
+if (!$bookId || !is_numeric($bookId)) {
     header('Location: index.php');
     exit;
 }
 
 try {
-    $stmt = $pdo->prepare("SELECT id FROM tasks WHERE id = ?");
-    $stmt->execute([$taskId]);
+    $stmt = $pdo->prepare("SELECT id FROM books WHERE id = ?");
+    $stmt->execute([$bookId]);
     
     if (!$stmt->fetch()) {
         header('Location: index.php');
         exit;
     }
     
-    $stmt = $pdo->prepare("DELETE FROM tasks WHERE id = ?");
-    $stmt->execute([$taskId]);
+    $stmt = $pdo->prepare("DELETE FROM books WHERE id = ?");
+    $stmt->execute([$bookId]);
     
     header('Location: index.php?deleted=1');
     exit;
